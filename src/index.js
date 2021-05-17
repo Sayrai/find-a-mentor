@@ -24,18 +24,19 @@ Sentry.init({
     getCurrentUser();
     ReactDOM.render(
       <UserProvider>
-        <FiltersProvider>
-          <ModalHookProvider>
-            <Router>
+        <ModalHookProvider>
+          <Router>
+            <FiltersProvider>
               <Switch>
                 <Route exact path="/">
                   <App />
                 </Route>
+                <Route path="/s/:id" component={App} />
                 <Route path="/me" component={Me} />
               </Switch>
-            </Router>
-          </ModalHookProvider>
-        </FiltersProvider>
+            </FiltersProvider>
+          </Router>
+        </ModalHookProvider>
       </UserProvider>,
       document.getElementById('root')
     );

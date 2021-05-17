@@ -28,12 +28,14 @@ import { set } from '../../titleGenerator';
 import { report, reportPageView } from '../../ga';
 import { getMentors } from '../../api';
 import { getCurrentUser } from '../../api';
-import { useFilters } from '../../context/filtersContext/FiltersContext';
+import { FiltersProvider, useFilters } from '../../context/filtersContext/FiltersContext';
 import UserContext from '../../context/userContext/UserContext';
 import {
   setPermalinkParams,
   getPermalinkParamsValues,
+  useFilterParams,
 } from '../../utils/permaLinkService';
+import { useParams, withRouter } from 'react-router';
 
 function scrollToTop() {
   const scrollDuration = 200;
@@ -51,6 +53,8 @@ function scrollToTop() {
 }
 
 const App = () => {
+  const params = useParams();
+  const {getFilterParams} = useFilterParams();
   const [mentors, setMentors] = useState([]);
   const [isReady, setIsReady] = useState(false);
   const [filters, setFilters] = useFilters();
@@ -67,10 +71,10 @@ const App = () => {
 
   useEffect(() => {
     window.onpopstate = () => {
-      const urlFilters = getPermalinkParamsValues();
+      const urlFilters = getFilterParams();
       setFilters({ type: 'setFilters', payload: urlFilters });
     };
-  }, [setFilters]);
+  }, [setFilters, getFilterParams]);
 
   const filterMentors = useCallback(
     mentor => {
@@ -82,7 +86,8 @@ const App = () => {
         (!language ||
           (mentor.spokenLanguages &&
             mentor.spokenLanguages.includes(language))) &&
-        (!showFavorites || favorites.indexOf(mentor._id) > -1)
+        (!showFavorites || favorites.indexOf(mentor._id) > -1) &&
+        (mentor.available)
       );
     },
     [filters, favorites, showFavorites]
@@ -104,50 +109,50 @@ const App = () => {
     report('Favorite');
   };
 
-  const onUpdateFilter = useCallback(
-    async (value, param) => {
-      if (typeof value === 'undefined') {
-        return;
-      }
-      await scrollToTop();
-      if (!onPopState) {
-        setPermalinkParams(param, value);
-        if (value) {
-          report('Filter', param, value);
-        }
-      }
-    },
-    [onPopState]
-  );
+  // const onUpdateFilter = useCallback(
+  //   async (value, param) => {
+  //     if (typeof value === 'undefined') {
+  //       return;
+  //     }
+  //     await scrollToTop();
+  //     if (!onPopState) {
+  //       setFilterParams(param, value);
+  //       if (value) {
+  //         report('Filter', param, value);
+  //       }
+  //     }
+  //   },
+  //   [onPopState, setFilterParams]
+  // );
 
-  useEffect(() => {
-    onUpdateFilter(tag, 'technology');
-  }, [tag, onUpdateFilter]);
+  // useEffect(() => {
+  //   onUpdateFilter(tag, 'technology');
+  // }, [tag, onUpdateFilter]);
 
-  useEffect(() => {
-    onUpdateFilter(country, 'country');
-  }, [country, onUpdateFilter]);
+  // useEffect(() => {
+  //   onUpdateFilter(country, 'country');
+  // }, [country, onUpdateFilter]);
 
-  useEffect(() => {
-    onUpdateFilter(language, 'language');
-  }, [language, onUpdateFilter]);
+  // useEffect(() => {
+  //   onUpdateFilter(language, 'language');
+  // }, [language, onUpdateFilter]);
 
-  const onUpdateName = useCallback(async () => {
-    if (typeof name === 'undefined') {
-      return;
-    }
-    await scrollToTop();
-    if (!onPopState) {
-      setPermalinkParams('name', name);
-      if (name) {
-        report('Filter', 'name', 'name');
-      }
-    }
-  }, [name, onPopState]);
+  // const onUpdateName = useCallback(async () => {
+  //   if (typeof name === 'undefined') {
+  //     return;
+  //   }
+  //   await scrollToTop();
+  //   if (!onPopState) {
+  //     setPermalinkParams('name', name);
+  //     if (name) {
+  //       report('Filter', 'name', 'name');
+  //     }
+  //   }
+  // }, [name, onPopState]);
 
-  useEffect(() => {
-    onUpdateName();
-  }, [name, onUpdateName]);
+  // useEffect(() => {
+  //   onUpdateName();
+  // }, [name, onUpdateName]);
 
   useEffect(() => set({ tag, country, name, language }), [
     tag,
@@ -196,10 +201,9 @@ const App = () => {
     report('Modal', 'open', title);
   };
 
-  const mentorsInList = useMemo(() => mentors.filter(filterMentors), [
-    mentors,
-    filterMentors,
-  ]);
+  const filteredMentors = useMemo(() => mentors.filter(filterMentors), [mentors, filterMentors]);
+
+  const mentorsInList = (params.id && isReady) ? [mentors.find(({_id}) => _id === params.id)] : filteredMentors;
 
   return (
     <div className="app">
@@ -212,8 +216,8 @@ const App = () => {
             <Filter
               onToggleFilter={toggleFields}
               onToggleSwitch={toggleSwitch}
-              mentorCount={mentorsInList.length}
-              mentors={mentorsInList}
+              mentorCount={filteredMentors.length}
+              mentors={filteredMentors}
               showFavorite={showFavorites}
             />
             <SocialLinks />
@@ -279,4 +283,4 @@ const Content = styled.div`
   }
 `;
 
-export default App;
+export default withRouter(App);

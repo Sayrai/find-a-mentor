@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import Obfuscate from 'react-obfuscate';
+import {useHistory, withRouter} from 'react-router-dom';
 import orderBy from 'lodash/orderBy';
 import './Card.css';
 import { getChannelInfo } from '../../channelProvider';
@@ -117,6 +118,7 @@ const LikeButton = ({ onClick, liked, tooltip }) => (
 );
 
 const Card = ({ mentor, onFavMentor, isFav }) => {
+  const history = useHistory();
   const [, dispatch] = useFilters();
   const { currentUser } = useContext(UserContext);
   const {
@@ -143,8 +145,8 @@ const Card = ({ mentor, onFavMentor, isFav }) => {
     dispatch({ type: 'filterTag', payload: tag });
   };
 
-  const handleAvatarClick = name => {
-    dispatch({ type: 'filterName', payload: name });
+  const handleAvatarClick = () => {
+    history.push(`/s/${mentor._id}`);
   };
 
   const handleCountryClick = country => {
@@ -215,7 +217,7 @@ const Card = ({ mentor, onFavMentor, isFav }) => {
         <Avatar
           mentor={mentor}
           id={mentorID}
-          handleAvatarClick={handleAvatarClick.bind(null, name)}
+          handleAvatarClick={handleAvatarClick}
         />
         <LikeButton onClick={toggleFav} liked={isFav} tooltip={tooltip} />
       </div>
@@ -232,4 +234,4 @@ const Card = ({ mentor, onFavMentor, isFav }) => {
   );
 };
 
-export default Card;
+export default withRouter(Card);

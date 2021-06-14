@@ -1,5 +1,5 @@
-import React from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
+import type { RouteComponentProps } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled from 'styled-components/macro';
@@ -12,7 +12,9 @@ import MentorshipReq from '../Me/MentorshipReq';
 import { GlobalStyle } from './styles/global';
 import { desktop } from './styles/shared/devices';
 
-const Me = ({ match: { url } }) => {
+type MeProps = RouteComponentProps & {};
+
+const Me = ({ match: { url } }: MeProps) => {
   const authenticated = auth.isAuthenticated();
 
   return (
